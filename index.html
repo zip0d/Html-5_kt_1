@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Таблица WebStorage</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <h1>Таблица WebStorage</h1>
+  <div>
+    <p>Текущий тип хранилища: <span id="currentStorageType">LocalStorage</span></p>
+    <input type="radio" id="localStorage" name="storage" value="localStorage" checked>
+    <label for="localStorage">LocalStorage</label>
+    <input type="radio" id="sessionStorage" name="storage" value="sessionStorage">
+    <label for="sessionStorage">SessionStorage</label>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Ключ</th>
+        <th>Значение</th>
+        <th>Удалить</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <button onclick="clearStorage()">Очистить Хранилище</button>
+  <br>
+  <label for="newKey">Ключ: </label>
+  <input type="text" id="newKey">
+  <label for="newValue">Значение: </label>
+  <input type="text" id="newValue">
+  <button onclick="saveItem()">Сохранить</button>
+
+  <script>
+    function updateTable(storageType) {
+      const tableBody = document.getElementById("tableBody");
+      tableBody.innerHTML = "";
+      let storage = storageType === 'sessionStorage' ? sessionStorage : localStorage;
+
+      for (let key in storage) {
+        const value = storage.getItem(key);
+
+        const row = tableBody.insertRow();
+        const keyCell = row.insertCell(0);
+        const valueCell = row.insertCell(1);
+        const deleteCell = row.insertCell(2);
+
+        keyCell.innerText = key;
+        valueCell.innerText = value;
+
+        const deleteButton = document.createElement("span");
+        deleteButton.innerText = "X";
+        deleteButton.onclick = function() {
+          deleteItem(key, storageType);
+        };
+
+        deleteCell.appendChild(deleteButton);
+      }
+
+      if (tableBody.children.length === 0) {
+        const emptyRow = tableBody.insertRow();
+        const emptyCell = emptyRow.insertCell(0);
+        emptyCell.colSpan = 3;
+        emptyCell.innerText = "Нет данных в хранилище.";
+      }
+    }
+
+    function getStorage() {
+      const selectedStorage = document.querySelector('input[name="storage"]:checked').value;
+      document.getElementById("currentStorageType").innerText = selectedStorage === 'sessionStorage' ? 'SessionStorage' : 'LocalStorage';
+      updateTable(selectedStorage);
+    }
+
+    function saveItem() {
+      const selectedStorage = document.querySelector('input[name="storage"]:checked').value;
+      let storage = selectedStorage === 'sessionStorage' ? sessionStorage : localStorage;
+      
+      const newKey = document.getElementById("newKey").value;
+      const newValue = document.getElementById("newValue").value;
+
+      if (newKey && newValue) {
+        storage.setItem(newKey, newValue);
+        updateTable(selectedStorage);
+        document.getElementById("newKey").value = "";
+        document.getElementById("newValue").value = "";
+      }
+    }
+
+    function deleteItem(key, storageType) {
+      const confirmDelete = confirm("Вы уверены, что хотите удалить эту запись?");
+      if (confirmDelete) {
+        let storage = storageType === 'sessionStorage' ? sessionStorage : localStorage;
+        storage.removeItem(key);
+        updateTable(storageType);
+      }
+    }
+
+    function clearStorage() {
+      const selectedStorage = document.querySelector('input[name="storage"]:checked').value;
+      const confirmClear = confirm(`Вы уверены, что хотите полностью очистить ${selectedStorage === 'sessionStorage' ? 'сессионное' : 'локальное'} хранилище?`);
+      if (confirmClear) {
+        let storage = selectedStorage === 'sessionStorage' ? sessionStorage : localStorage;
+        storage.clear();
+        updateTable(selectedStorage);
+      }
+    }
+
+    window.onload = getStorage;
+  </script>
+</body>
+</html>
